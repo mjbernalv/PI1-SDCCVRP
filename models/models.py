@@ -3,7 +3,6 @@ import numpy as np
 import time
 
 
-
 def Moshref_JavadiAndLee_model(n,m,d,c,Q,M,ins,lim):
     # Change to Cmax constraint from model 1
     model = Model('SDCCVRP')
