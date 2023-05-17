@@ -64,15 +64,18 @@ def my_model(n,m,q,c,Q,tours,ins,lim):
     chi[1].start = 1
     chi[2].start = 1
     chi[3].start = 1
-    
     lam[0,1,0].start = 1
-    lam[1,2,0].start = 1
-    lam[2,3,0].start = 1
-    lam[3,4,0].start = 1
-    lam[4,5,0].start = 1
-    lam[5,6,0].start = 1
-    lam[6,7,0].start = 1
-    lam[7,22,0].start = 1
+    lam[n,n+1,m-1].start = 1
+
+    
+    # lam[0,1,0].start = 1
+    # lam[1,2,0].start = 1
+    # lam[2,3,0].start = 1
+    # lam[3,4,0].start = 1
+    # lam[4,5,0].start = 1
+    # lam[5,6,0].start = 1
+    # lam[6,7,0].start = 1
+    # lam[7,22,0].start = 1
 
     # model.addConstr(L[0,1,0] == 0)
     # model.addConstr(L[1,2,0] == q[tours[0][1]-1])
@@ -83,25 +86,25 @@ def my_model(n,m,q,c,Q,tours,ins,lim):
     # model.addConstr(L[6,7,0] == q[tours[0][6]-1]+L[5,6,0])
     # model.addConstr(L[7,22,0] == q[tours[0][7]-1]+L[6,7,0])
     
-    lam[0,8,1].start = 1
-    lam[8,9,1].start = 1
-    lam[9,10,1].start = 1
-    lam[10,11,1].start = 1
-    lam[11,12,1].start = 1
-    lam[12,22,1].start = 1
+    # lam[0,8,1].start = 1
+    # lam[8,9,1].start = 1
+    # lam[9,10,1].start = 1
+    # lam[10,11,1].start = 1
+    # lam[11,12,1].start = 1
+    # lam[12,22,1].start = 1
 
-    lam[0,13,2].start = 1
-    lam[13,14,2].start = 1
-    lam[14,15,2].start = 1
-    lam[15,16,2].start = 1
-    lam[16,17,2].start = 1
-    lam[17,18,2].start = 1
-    lam[18,22,2].start = 1
+    # lam[0,13,2].start = 1
+    # lam[13,14,2].start = 1
+    # lam[14,15,2].start = 1
+    # lam[15,16,2].start = 1
+    # lam[16,17,2].start = 1
+    # lam[17,18,2].start = 1
+    # lam[18,22,2].start = 1
 
-    lam[0,19,3].start = 1
-    lam[19,20,3].start = 1
-    lam[20,21,3].start = 1
-    lam[21,22,3].start = 1
+    # lam[0,19,3].start = 1
+    # lam[19,20,3].start = 1
+    # lam[20,21,3].start = 1
+    # lam[21,22,3].start = 1
     
 
     model.update()
@@ -274,6 +277,7 @@ lim = 30
 far = f_nodes(len(nodes), k, dist, np.max(dist), lim)
 routes, loads, obj = initial2(k, q, dist, dem, far)
 
+# SOLUCIÓN CONSTRUCTIVA
 aux = [0]
 for h in range(k):
     for i in range(1,len(routes[h])-1):
@@ -283,14 +287,62 @@ tours = []
 for h in range(k):
     tours.append(aux)
 
-for h in range(24*k):
+# SOLUCIONES ALEATORIAS
+for h in range(10*k):
     aux = np.random.permutation(len(nodes)-1)+1
     aux = list(aux)
     aux.insert(0,0)
     aux.insert(len(aux),0)
     for i in range(k):
         tours.append(aux)
-    
+
+# REORDENAMIENTO DE SOLUCIÓN CONSTRUCTIVA
+for ñ in range(10*k):
+    check = np.zeros(k)
+    aux = [0]
+    while sum(check)<k:
+        h = random.randint(0,k-1)
+        while check[h]==1:
+            h = random.randint(0,k-1)
+        check[h] = 1
+        for i in range(1,len(routes[h])-1):
+            aux.append(routes[h][i])
+    aux.append(0)
+    for h in range(k):
+        tours.append(aux)
+
+# SOLUCION CONSTRUCTIVA CON MOVIMIENTOS 2-OPT
+for h in range(10*k):
+    aux = tours[0].copy()
+    i = random.randint(1,len(nodes)-5)
+    j = random.randint(i+2,len(nodes))
+    aux[i:j] = aux[j-1:i-1:-1]
+    for i in range(k):
+        tours.append(aux)
+        
+# tours = []
+# # RUTAS PARCIALES
+# # SOLUCIÓN CONSTRUCTIVA
+# gtour = [0]
+# for h in range(k):
+#     for i in range(1,len(routes[h])-1):
+#         gtour.append(routes[h][i])
+# gtour.append(0)
+# for h in range(k):
+#     tours.append(routes[h])
+# for h in range(10*k):
+#     i = random.randint(1,len(nodes)-5)
+#     load = dem[i-1]
+#     aux = [0, gtour[i]]
+#     for j in range(i+1,len(gtour)):
+#         load += dem[gtour[j]-1]
+#         aux.append(gtour[j])
+#         if load > q:
+#             break
+#     aux.append(0)
+#     tours.append(aux)
+        
+
 lim=60*60
 my_model(len(nodes)-1,k,dem,dist,q,tours,1,lim)
 # my_model_b(len(nodes)-1,k,dem,dist,q,tours,1,lim)
